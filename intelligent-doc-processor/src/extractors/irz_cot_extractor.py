@@ -218,6 +218,8 @@ Think carefully and provide your extraction with detailed reasoning:"""
             return await self._call_anthropic(prompt)
         elif self.settings.extraction_model.startswith("gemini-"):
             return await self._call_google(prompt)
+        elif self.settings.extraction_model.startswith("deepseek-") or getattr(self.settings, 'llm_provider', '') == 'nvidia':
+            return await self._call_nvidia(prompt)
         else:
             raise ValueError(f"Unsupported model: {self.settings.extraction_model}")
 
@@ -272,6 +274,47 @@ Think carefully and provide your extraction with detailed reasoning:"""
         )
 
         return response.text
+
+    async def _call_nvidia(self, prompt: str) -> str:
+        """Call NVIDIA API"""
+        import aiohttp
+        import ssl
+        import certifi
+
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+        url = "https://integrate.api.nvidia.com/v1/chat/completions"
+
+        headers = {
+            "Authorization": f"Bearer {self.settings.nvidia_api_key}",
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+
+        messages = [
+            {"role": "system", "content": "You are an expert document extraction specialist. Always respond with valid JSON."},
+            {"role": "user", "content": prompt}
+        ]
+
+        data = {
+            "messages": messages,
+            "stream": False,
+            "model": self.settings.extraction_model,
+            "max_tokens": 4096,
+            "temperature": 0.1,
+            "top_p": 1.0,
+            "presence_penalty": 0,
+            "frequency_penalty": 0
+        }
+
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    self.logger.error(f"NVIDIA API Error: {response.status} - {error_text}")
+                    raise ValueError(f"NVIDIA API Error: {response.status} - {error_text}")
+
+                result = await response.json()
+                return result['choices'][0]['message']['content']
 
     def _parse_llm_response(self, response: str) -> Dict[str, Any]:
         """

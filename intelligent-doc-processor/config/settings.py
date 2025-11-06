@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     openai_api_key: str = Field(default="", env="OPENAI_API_KEY")
     anthropic_api_key: str = Field(default="", env="ANTHROPIC_API_KEY")
     google_api_key: str = Field(default="", env="GOOGLE_API_KEY")
+    nvidia_api_key: str = Field(default="", env="NVIDIA_API_KEY")
+    llm_provider: str = Field(default="openai", env="LLM_PROVIDER")
 
     # OCR Service API Keys
     aws_access_key_id: str = Field(default="", env="AWS_ACCESS_KEY_ID")
