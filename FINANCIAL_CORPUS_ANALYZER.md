@@ -85,7 +85,7 @@ The **Financial Corpus Analyzer** is a professional multi-agent AI system design
 
 4. **Open your browser**:
    ```
-   http://localhost:3000
+   http://localhost:8000
    ```
 
 ### Usage

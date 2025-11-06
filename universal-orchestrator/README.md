@@ -101,10 +101,70 @@
 
 ## 🚀 Quick Start
 
+### Using Startup Scripts (Recommended)
+
+**macOS/Linux:**
+```bash
+./start.sh
+```
+
+**Windows:**
+```cmd
+start.bat
+```
+
+Then open: **http://localhost:8000**
+
+### Manual Setup
+
+```bash
+# 1. Create virtual environment
+python3 -m venv venv
+
+# 2. Activate it
+source venv/bin/activate        # macOS/Linux
+venv\Scripts\activate.bat       # Windows
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Setup environment
+cp .env.example .env
+# Edit .env and add your API key (OpenAI, Anthropic, or Google)
+
+# 5. Run server
+python -m src.ui.server
+
+# 6. Open browser
+# http://localhost:8000
+```
+
+### Docker (Alternative)
+
 ```bash
 docker-compose up -d
-# Open: http://localhost:3000
+# Open: http://localhost:8000
 ```
+
+## 💎 NEW: Financial Corpus Analyzer
+
+The latest version includes a **professional financial analysis interface**:
+
+### Features
+- 📁 **Drag & Drop Upload**: PDF, CSV, XLSX, DOC, TXT files
+- 🔗 **URL Scraping**: Automatically extract content from financial websites
+- 💎 **Alpha Extraction**: AI-powered investment insights with strength scoring
+- 📊 **Report Generation**: Comprehensive analysis from large document corpuses
+- 💬 **Conversational Chat**: Ask questions about your uploaded data
+
+### UI Overview
+- **Left Sidebar**: Data source management (upload files, scrape URLs, view loaded data)
+- **Main Area**: Tabbed interface
+  - **Chat Tab**: Conversational Q&A about your data
+  - **Report Tab**: Comprehensive financial analysis reports
+  - **Alpha Insights Tab**: Color-coded investment opportunities (Strong/Moderate/Weak)
+
+See [FINANCIAL_CORPUS_ANALYZER.md](../FINANCIAL_CORPUS_ANALYZER.md) for detailed documentation.
 
 ## 💼 Perfect For
 
