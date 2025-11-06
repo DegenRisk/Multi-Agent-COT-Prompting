@@ -1,0 +1,166 @@
+{
+  "template_id": "legal_contract_v1",
+  "template_name": "Legal Contract Analysis",
+  "industry": "legal",
+  "document_type": "contract",
+  "description": "Extraction template for analyzing legal contracts and agreements",
+  "version": "1.0",
+  "role_persona": "a senior corporate attorney with expertise in contract law and commercial agreements. You have reviewed thousands of contracts across various industries and have a keen eye for critical terms, obligations, and potential issues. You understand the nuances of legal language and can identify key provisions that affect parties' rights and responsibilities",
+  "instruction_prompt": "You are reviewing a legal contract or agreement. Your task is to extract key terms, parties, obligations, and critical provisions. Pay special attention to dates, monetary amounts, termination clauses, and liability provisions. If any terms are ambiguous or could have multiple interpretations, note this in your reasoning. Extract information exactly as stated in the contract.",
+  "fields": [
+    {
+      "name": "contract_title",
+      "description": "Official title of the contract or agreement",
+      "field_type": "string",
+      "required": true,
+      "example_values": ["Master Service Agreement", "Employment Agreement", "Non-Disclosure Agreement"]
+    },
+    {
+      "name": "contract_type",
+      "description": "Type/category of contract",
+      "field_type": "string",
+      "required": true,
+      "example_values": ["Service Agreement", "Purchase Agreement", "License Agreement", "Employment Contract"]
+    },
+    {
+      "name": "effective_date",
+      "description": "Date when the contract becomes effective",
+      "field_type": "date",
+      "required": true,
+      "example_values": ["2024-01-15", "2023-12-01"]
+    },
+    {
+      "name": "expiration_date",
+      "description": "Date when the contract expires or terminates",
+      "field_type": "date",
+      "required": false,
+      "example_values": ["2025-01-14", "2026-12-01"]
+    },
+    {
+      "name": "party_a_name",
+      "description": "Full legal name of the first party (often the service provider or seller)",
+      "field_type": "string",
+      "required": true
+    },
+    {
+      "name": "party_a_address",
+      "description": "Address of the first party",
+      "field_type": "string",
+      "required": false
+    },
+    {
+      "name": "party_b_name",
+      "description": "Full legal name of the second party (often the client or buyer)",
+      "field_type": "string",
+      "required": true
+    },
+    {
+      "name": "party_b_address",
+      "description": "Address of the second party",
+      "field_type": "string",
+      "required": false
+    },
+    {
+      "name": "contract_value",
+      "description": "Total monetary value of the contract",
+      "field_type": "number",
+      "required": false,
+      "validation_rules": {
+        "min": 0,
+        "format": "currency"
+      }
+    },
+    {
+      "name": "payment_terms",
+      "description": "Payment terms and schedule",
+      "field_type": "string",
+      "required": false,
+      "example_values": ["Net 30 days", "50% upfront, 50% upon completion", "Monthly installments"]
+    },
+    {
+      "name": "scope_of_work",
+      "description": "Description of work, services, or goods covered by the contract",
+      "field_type": "string",
+      "required": false
+    },
+    {
+      "name": "termination_clause",
+      "description": "Terms under which the contract can be terminated",
+      "field_type": "string",
+      "required": false
+    },
+    {
+      "name": "termination_notice_period",
+      "description": "Required notice period for termination (in days)",
+      "field_type": "number",
+      "required": false,
+      "example_values": [30, 60, 90]
+    },
+    {
+      "name": "renewal_terms",
+      "description": "Terms for contract renewal (automatic or manual)",
+      "field_type": "string",
+      "required": false
+    },
+    {
+      "name": "liability_cap",
+      "description": "Maximum liability amount for either party",
+      "field_type": "number",
+      "required": false,
+      "validation_rules": {
+        "min": 0,
+        "format": "currency"
+      }
+    },
+    {
+      "name": "indemnification_clause",
+      "description": "Summary of indemnification obligations",
+      "field_type": "string",
+      "required": false
+    },
+    {
+      "name": "confidentiality_period",
+      "description": "Period for which confidentiality obligations apply (in years)",
+      "field_type": "number",
+      "required": false
+    },
+    {
+      "name": "governing_law",
+      "description": "Jurisdiction/state whose laws govern the contract",
+      "field_type": "string",
+      "required": false,
+      "example_values": ["State of California", "New York", "Delaware"]
+    },
+    {
+      "name": "dispute_resolution",
+      "description": "Method for resolving disputes (arbitration, litigation, mediation)",
+      "field_type": "string",
+      "required": false,
+      "example_values": ["Binding arbitration", "Court litigation", "Mediation followed by arbitration"]
+    },
+    {
+      "name": "non_compete_clause",
+      "description": "Details of any non-compete provisions",
+      "field_type": "string",
+      "required": false
+    },
+    {
+      "name": "intellectual_property_rights",
+      "description": "How intellectual property rights are allocated",
+      "field_type": "string",
+      "required": false
+    },
+    {
+      "name": "warranties",
+      "description": "Key warranties provided by either party",
+      "field_type": "array",
+      "required": false
+    },
+    {
+      "name": "special_conditions",
+      "description": "Any special conditions, contingencies, or unique clauses",
+      "field_type": "array",
+      "required": false
+    }
+  ]
+}
