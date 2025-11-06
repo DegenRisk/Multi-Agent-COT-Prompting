@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal AI Orchestrator</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Universal AI Orchestrator</h1>
+            <p>ChatGPT simplicity with multi-agent intelligence</p>
+        </header>
+
+        <div id="chat-container">
+            <div id="messages"></div>
+        </div>
+
+        <div id="input-container">
+            <textarea
+                id="user-input"
+                placeholder="Type your message... (e.g., 'Analyze this data', 'Write code for X', 'Research topic Y')"
+                rows="3"
+            ></textarea>
+            <div class="input-actions">
+                <button id="send-btn" onclick="sendMessage()">Send</button>
+                <button id="upload-btn" onclick="uploadFile()">📎 Upload</button>
+            </div>
+        </div>
+
+        <div id="capabilities">
+            <strong>Available Capabilities:</strong>
+            <span id="capability-list">Loading...</span>
+        </div>
+    </div>
+
+    <script>
+        const clientId = 'user_' + Math.random().toString(36).substr(2, 9);
+        let conversationId = null;
+        let ws = null;
+
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://${window.location.host}/ws/${clientId}`);
+
+            ws.onopen = () => {
+                console.log('Connected to orchestrator');
+                addSystemMessage('Connected! Ready to help with any task.');
+            };
+
+            ws.onmessage = (event) => {
+                const response = JSON.parse(event.data);
+                handleResponse(response);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                addSystemMessage('Connection error. Please refresh the page.');
+            };
+
+            ws.onclose = () => {
+                console.log('Disconnected');
+                addSystemMessage('Disconnected. Reconnecting...');
+                setTimeout(connectWebSocket, 2000);
+            };
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message to chat
+            addUserMessage(message);
+            input.value = '';
+
+            // Send to orchestrator
+            const data = {
+                message: message,
+                conversation_id: conversationId
+            };
+
+            ws.send(JSON.stringify(data));
+
+            // Show typing indicator
+            addTypingIndicator();
+        }
+
+        function handleResponse(response) {
+            removeTypingIndicator();
+
+            if (response.conversation_id) {
+                conversationId = response.conversation_id;
+            }
+
+            if (response.error) {
+                addErrorMessage(response.error);
+            } else {
+                addAssistantMessage(response.message, response.metadata);
+            }
+        }
+
+        function addUserMessage(text) {
+            const messagesDiv = document.getElementById('messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message user-message';
+            msgDiv.innerHTML = `<div class="message-content">${escapeHtml(text)}</div>`;
+            messagesDiv.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        function addAssistantMessage(text, metadata) {
+            const messagesDiv = document.getElementById('messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message assistant-message';
+
+            let content = `<div class="message-content">${escapeHtml(text)}</div>`;
+
+            if (metadata) {
+                content += `<div class="metadata">
+                    <small>
+                        🤖 Agents: ${metadata.agents_used.join(', ')} |
+                        ⏱️ ${metadata.execution_time.toFixed(2)}s |
+                        📊 Confidence: ${(metadata.confidence * 100).toFixed(0)}%
+                    </small>
+                </div>`;
+            }
+
+            msgDiv.innerHTML = content;
+            messagesDiv.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        function addSystemMessage(text) {
+            const messagesDiv = document.getElementById('messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message system-message';
+            msgDiv.innerHTML = `<div class="message-content">${escapeHtml(text)}</div>`;
+            messagesDiv.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        function addErrorMessage(text) {
+            const messagesDiv = document.getElementById('messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message error-message';
+            msgDiv.innerHTML = `<div class="message-content">❌ ${escapeHtml(text)}</div>`;
+            messagesDiv.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        function addTypingIndicator() {
+            const messagesDiv = document.getElementById('messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message assistant-message typing-indicator';
+            typingDiv.id = 'typing';
+            typingDiv.innerHTML = '<div class="message-content">Thinking<span class="dots">...</span></div>';
+            messagesDiv.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function removeTypingIndicator() {
+            const typing = document.getElementById('typing');
+            if (typing) typing.remove();
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chat-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function uploadFile() {
+            alert('File upload coming soon! For now, paste text or describe your task.');
+        }
+
+        // Load capabilities
+        fetch('/api/capabilities')
+            .then(r => r.json())
+            .then(data => {
+                const caps = data.capabilities.map(c => c.name).join(', ');
+                document.getElementById('capability-list').textContent = caps;
+            });
+
+        // Enter to send
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Connect on load
+        connectWebSocket();
+    </script>
+</body>
+</html>
