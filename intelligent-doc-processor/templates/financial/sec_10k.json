@@ -1,0 +1,151 @@
+{
+  "template_id": "financial_sec_10k_v1",
+  "template_name": "SEC 10-K Annual Report",
+  "industry": "financial",
+  "document_type": "sec_10k",
+  "description": "Extraction template for SEC 10-K annual reports with comprehensive financial and operational data",
+  "version": "1.0",
+  "role_persona": "a seasoned SEC filing analyst with 15+ years of experience analyzing public company financial statements. You have deep expertise in GAAP accounting, financial regulations, and corporate disclosures. Your analysis is trusted by institutional investors and regulatory bodies",
+  "instruction_prompt": "You are analyzing an SEC 10-K annual report. These documents contain critical financial and operational information about public companies. Extract the following information with absolute precision. Cross-reference numbers across sections to ensure consistency. Pay special attention to the footnotes and MD&A (Management Discussion and Analysis) sections for context. If any figures are presented in thousands or millions, note this clearly.",
+  "fields": [
+    {
+      "name": "company_name",
+      "description": "Full legal name of the company filing the 10-K",
+      "field_type": "string",
+      "required": true,
+      "example_values": ["Apple Inc.", "Microsoft Corporation", "Amazon.com, Inc."]
+    },
+    {
+      "name": "fiscal_year_end",
+      "description": "Fiscal year end date for this report",
+      "field_type": "date",
+      "required": true,
+      "example_values": ["2023-12-31", "2023-09-30"]
+    },
+    {
+      "name": "cik_number",
+      "description": "Central Index Key (CIK) number assigned by SEC",
+      "field_type": "string",
+      "required": true,
+      "example_values": ["0000320193", "0000789019"]
+    },
+    {
+      "name": "ticker_symbol",
+      "description": "Stock ticker symbol",
+      "field_type": "string",
+      "required": true,
+      "example_values": ["AAPL", "MSFT", "AMZN"]
+    },
+    {
+      "name": "total_revenue",
+      "description": "Total revenue/net sales for the fiscal year",
+      "field_type": "number",
+      "required": true,
+      "validation_rules": {
+        "min": 0,
+        "format": "currency"
+      },
+      "example_values": ["394328000000", "211915000000"]
+    },
+    {
+      "name": "net_income",
+      "description": "Net income (profit) for the fiscal year",
+      "field_type": "number",
+      "required": true,
+      "validation_rules": {
+        "format": "currency"
+      },
+      "example_values": ["96995000000", "72361000000"]
+    },
+    {
+      "name": "total_assets",
+      "description": "Total assets on balance sheet",
+      "field_type": "number",
+      "required": true,
+      "validation_rules": {
+        "min": 0,
+        "format": "currency"
+      }
+    },
+    {
+      "name": "total_liabilities",
+      "description": "Total liabilities on balance sheet",
+      "field_type": "number",
+      "required": true,
+      "validation_rules": {
+        "min": 0,
+        "format": "currency"
+      }
+    },
+    {
+      "name": "shareholders_equity",
+      "description": "Total shareholders' equity",
+      "field_type": "number",
+      "required": true,
+      "validation_rules": {
+        "format": "currency"
+      }
+    },
+    {
+      "name": "cash_and_equivalents",
+      "description": "Cash and cash equivalents",
+      "field_type": "number",
+      "required": true,
+      "validation_rules": {
+        "min": 0,
+        "format": "currency"
+      }
+    },
+    {
+      "name": "operating_cash_flow",
+      "description": "Cash flow from operating activities",
+      "field_type": "number",
+      "required": false,
+      "validation_rules": {
+        "format": "currency"
+      }
+    },
+    {
+      "name": "earnings_per_share_basic",
+      "description": "Basic earnings per share",
+      "field_type": "number",
+      "required": false,
+      "example_values": ["6.16", "9.72"]
+    },
+    {
+      "name": "earnings_per_share_diluted",
+      "description": "Diluted earnings per share",
+      "field_type": "number",
+      "required": false,
+      "example_values": ["6.11", "9.68"]
+    },
+    {
+      "name": "employee_count",
+      "description": "Number of employees",
+      "field_type": "number",
+      "required": false,
+      "validation_rules": {
+        "min": 0
+      }
+    },
+    {
+      "name": "business_description",
+      "description": "Brief description of the company's business and operations",
+      "field_type": "string",
+      "required": false
+    },
+    {
+      "name": "risk_factors",
+      "description": "Key risk factors mentioned in the report",
+      "field_type": "array",
+      "required": false
+    },
+    {
+      "name": "auditor_name",
+      "description": "Name of the independent auditing firm",
+      "field_type": "string",
+      "required": false,
+      "example_values": ["Ernst & Young LLP", "Deloitte & Touche LLP", "PricewaterhouseCoopers LLP"]
+    }
+  ]
+}
