@@ -3,49 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal AI Orchestrator</title>
+    <title>Financial Corpus Analyzer - Multi-Agent AI</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🤖 Universal AI Orchestrator</h1>
-            <p>ChatGPT simplicity with multi-agent intelligence</p>
-        </header>
-
-        <div id="chat-container">
-            <div id="messages"></div>
-        </div>
-
-        <div id="input-container">
-            <textarea
-                id="user-input"
-                placeholder="Type your message... (e.g., 'Analyze this data', 'Write code for X', 'Research topic Y')"
-                rows="3"
-            ></textarea>
-            <div class="input-actions">
-                <button id="send-btn" onclick="sendMessage()">Send</button>
-                <button id="upload-btn" onclick="uploadFile()">📎 Upload</button>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>📊 Financial Alpha</h2>
+                <p>Multi-Agent Corpus Analyzer</p>
             </div>
-        </div>
 
-        <div id="capabilities">
-            <strong>Available Capabilities:</strong>
-            <span id="capability-list">Loading...</span>
-        </div>
+            <div class="data-sources">
+                <h3>Data Sources</h3>
+
+                <!-- File Upload Zone -->
+                <div class="upload-zone" id="dropZone">
+                    <div class="upload-icon">📁</div>
+                    <p><strong>Drop files here</strong></p>
+                    <p class="upload-hint">or click to browse</p>
+                    <input type="file" id="fileInput" multiple accept=".pdf,.txt,.csv,.xlsx,.xls,.doc,.docx" hidden>
+                </div>
+
+                <!-- URL Input -->
+                <div class="url-input-section">
+                    <h4>Scrape URL</h4>
+                    <div class="url-input-group">
+                        <input type="url" id="urlInput" placeholder="https://example.com/financial-data">
+                        <button id="scrapeBtn" onclick="scrapeURL()">Scrape</button>
+                    </div>
+                </div>
+
+                <!-- Uploaded Files List -->
+                <div class="files-list" id="filesList">
+                    <h4>Loaded Data</h4>
+                    <div id="filesContent">
+                        <p class="no-files">No data loaded yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Status -->
+            <div class="processing-status" id="processingStatus" style="display: none;">
+                <h4>Processing</h4>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p id="progressText">0% complete</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="main-header">
+                <h1>Financial Corpus Analysis</h1>
+                <div class="header-actions">
+                    <button id="generateReportBtn" onclick="generateReport()" class="btn-primary">
+                        📄 Generate Alpha Report
+                    </button>
+                    <button id="clearBtn" onclick="clearAll()" class="btn-secondary">
+                        🗑️ Clear All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('chat')">💬 Chat</button>
+                <button class="tab" onclick="switchTab('report')">📊 Report</button>
+                <button class="tab" onclick="switchTab('alpha')">💎 Alpha Insights</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Chat Tab -->
+                <div id="chatTab" class="tab-panel active">
+                    <div id="chat-container">
+                        <div id="messages"></div>
+                    </div>
+
+                    <div id="input-container">
+                        <textarea
+                            id="user-input"
+                            placeholder="Ask about your financial data... (e.g., 'What are the key alpha opportunities?', 'Summarize revenue trends', 'Extract competitive advantages')"
+                            rows="3"
+                        ></textarea>
+                        <div class="input-actions">
+                            <button id="send-btn" onclick="sendMessage()" class="btn-primary">Send</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Tab -->
+                <div id="reportTab" class="tab-panel">
+                    <div id="reportContent" class="report-content">
+                        <div class="empty-state">
+                            <div class="empty-icon">📄</div>
+                            <h3>No Report Generated</h3>
+                            <p>Upload financial data and click "Generate Alpha Report" to create a comprehensive analysis.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alpha Insights Tab -->
+                <div id="alphaTab" class="tab-panel">
+                    <div id="alphaContent" class="alpha-content">
+                        <div class="empty-state">
+                            <div class="empty-icon">💎</div>
+                            <h3>No Alpha Extracted Yet</h3>
+                            <p>Alpha insights will appear here after processing your financial corpus.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
         const clientId = 'user_' + Math.random().toString(36).substr(2, 9);
         let conversationId = null;
         let ws = null;
+        let uploadedFiles = [];
+        let scrapedUrls = [];
 
+        // WebSocket Connection
         function connectWebSocket() {
             ws = new WebSocket(`ws://${window.location.host}/ws/${clientId}`);
 
             ws.onopen = () => {
                 console.log('Connected to orchestrator');
-                addSystemMessage('Connected! Ready to help with any task.');
+                addSystemMessage('✅ Connected! Upload financial data or paste URLs to begin.');
             };
 
             ws.onmessage = (event) => {
@@ -55,30 +143,330 @@
 
             ws.onerror = (error) => {
                 console.error('WebSocket error:', error);
-                addSystemMessage('Connection error. Please refresh the page.');
+                addSystemMessage('❌ Connection error. Please refresh the page.');
             };
 
             ws.onclose = () => {
                 console.log('Disconnected');
-                addSystemMessage('Disconnected. Reconnecting...');
+                addSystemMessage('⚠️ Disconnected. Reconnecting...');
                 setTimeout(connectWebSocket, 2000);
             };
         }
 
+        // File Upload Handling
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        async function handleFiles(files) {
+            for (let file of files) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    showProcessing(true, `Uploading ${file.name}...`);
+
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        uploadedFiles.push({
+                            name: file.name,
+                            size: file.size,
+                            id: result.file_id
+                        });
+                        updateFilesList();
+                        addSystemMessage(`✅ Uploaded: ${file.name} (${formatFileSize(file.size)})`);
+                    } else {
+                        addSystemMessage(`❌ Failed to upload ${file.name}: ${result.error}`);
+                    }
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    addSystemMessage(`❌ Error uploading ${file.name}`);
+                } finally {
+                    showProcessing(false);
+                }
+            }
+        }
+
+        async function scrapeURL() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                addSystemMessage('⚠️ Please enter a URL to scrape');
+                return;
+            }
+
+            try {
+                showProcessing(true, `Scraping ${url}...`);
+
+                const response = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({url: url})
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    scrapedUrls.push({
+                        url: url,
+                        title: result.title || url,
+                        id: result.scrape_id
+                    });
+                    updateFilesList();
+                    addSystemMessage(`✅ Scraped: ${result.title || url}`);
+                    urlInput.value = '';
+                } else {
+                    addSystemMessage(`❌ Failed to scrape: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Scrape error:', error);
+                addSystemMessage(`❌ Error scraping URL`);
+            } finally {
+                showProcessing(false);
+            }
+        }
+
+        function updateFilesList() {
+            const filesContent = document.getElementById('filesContent');
+
+            if (uploadedFiles.length === 0 && scrapedUrls.length === 0) {
+                filesContent.innerHTML = '<p class="no-files">No data loaded yet</p>';
+                return;
+            }
+
+            let html = '<div class="file-items">';
+
+            uploadedFiles.forEach((file, idx) => {
+                html += `
+                    <div class="file-item">
+                        <span class="file-icon">📄</span>
+                        <div class="file-info">
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFile(${idx}, 'file')">×</button>
+                    </div>
+                `;
+            });
+
+            scrapedUrls.forEach((item, idx) => {
+                html += `
+                    <div class="file-item">
+                        <span class="file-icon">🔗</span>
+                        <div class="file-info">
+                            <div class="file-name">${item.title}</div>
+                            <div class="file-size">Scraped URL</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFile(${idx}, 'url')">×</button>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            filesContent.innerHTML = html;
+        }
+
+        function removeFile(index, type) {
+            if (type === 'file') {
+                uploadedFiles.splice(index, 1);
+            } else {
+                scrapedUrls.splice(index, 1);
+            }
+            updateFilesList();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function showProcessing(show, message = '') {
+            const statusDiv = document.getElementById('processingStatus');
+            const progressText = document.getElementById('progressText');
+
+            if (show) {
+                statusDiv.style.display = 'block';
+                progressText.textContent = message;
+            } else {
+                statusDiv.style.display = 'none';
+            }
+        }
+
+        function updateProgress(percent) {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            progressFill.style.width = percent + '%';
+            progressText.textContent = percent + '% complete';
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Remove active class from all tabs and panels
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+            // Add active class to selected tab and panel
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        // Generate Report
+        async function generateReport() {
+            if (uploadedFiles.length === 0 && scrapedUrls.length === 0) {
+                addSystemMessage('⚠️ Please upload files or scrape URLs first');
+                return;
+            }
+
+            try {
+                showProcessing(true, 'Generating comprehensive alpha report...');
+
+                const response = await fetch('/api/generate-report', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        files: uploadedFiles.map(f => f.id),
+                        urls: scrapedUrls.map(u => u.id),
+                        conversation_id: conversationId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayReport(result.report);
+                    displayAlphaInsights(result.alpha_insights);
+                    addSystemMessage('✅ Report generated successfully!');
+                    switchTab('report');
+                } else {
+                    addSystemMessage(`❌ Failed to generate report: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Report generation error:', error);
+                addSystemMessage('❌ Error generating report');
+            } finally {
+                showProcessing(false);
+            }
+        }
+
+        function displayReport(reportHtml) {
+            const reportContent = document.getElementById('reportContent');
+            reportContent.innerHTML = reportHtml;
+        }
+
+        function displayAlphaInsights(insights) {
+            const alphaContent = document.getElementById('alphaContent');
+
+            if (!insights || insights.length === 0) {
+                alphaContent.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💎</div>
+                        <h3>No Alpha Detected</h3>
+                        <p>No significant investment opportunities identified in this corpus.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="alpha-insights">';
+
+            insights.forEach((insight, idx) => {
+                html += `
+                    <div class="alpha-card ${insight.strength}">
+                        <div class="alpha-header">
+                            <span class="alpha-badge">${insight.strength.toUpperCase()}</span>
+                            <span class="alpha-score">${insight.score}/10</span>
+                        </div>
+                        <h3>${insight.title}</h3>
+                        <p>${insight.description}</p>
+                        <div class="alpha-details">
+                            <strong>Rationale:</strong> ${insight.rationale}
+                        </div>
+                        ${insight.evidence ? `<div class="alpha-evidence"><strong>Evidence:</strong> ${insight.evidence}</div>` : ''}
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            alphaContent.innerHTML = html;
+        }
+
+        function clearAll() {
+            if (confirm('Clear all data and start fresh?')) {
+                uploadedFiles = [];
+                scrapedUrls = [];
+                updateFilesList();
+                document.getElementById('messages').innerHTML = '';
+                document.getElementById('reportContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📄</div>
+                        <h3>No Report Generated</h3>
+                        <p>Upload financial data and click "Generate Alpha Report" to create a comprehensive analysis.</p>
+                    </div>
+                `;
+                document.getElementById('alphaContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💎</div>
+                        <h3>No Alpha Extracted Yet</h3>
+                        <p>Alpha insights will appear here after processing your financial corpus.</p>
+                    </div>
+                `;
+                addSystemMessage('🗑️ All data cleared');
+            }
+        }
+
+        // Chat Functions
         function sendMessage() {
             const input = document.getElementById('user-input');
             const message = input.value.trim();
 
             if (!message) return;
 
+            // Check if data is loaded
+            const hasData = uploadedFiles.length > 0 || scrapedUrls.length > 0;
+
             // Add user message to chat
             addUserMessage(message);
             input.value = '';
 
-            // Send to orchestrator
+            // Send to orchestrator with context
             const data = {
                 message: message,
-                conversation_id: conversationId
+                conversation_id: conversationId,
+                context: {
+                    files: uploadedFiles.map(f => f.id),
+                    urls: scrapedUrls.map(u => u.id),
+                    has_data: hasData
+                }
             };
 
             ws.send(JSON.stringify(data));
@@ -92,6 +480,10 @@
 
             if (response.conversation_id) {
                 conversationId = response.conversation_id;
+            }
+
+            if (response.progress) {
+                updateProgress(response.progress);
             }
 
             if (response.error) {
@@ -120,9 +512,9 @@
             if (metadata) {
                 content += `<div class="metadata">
                     <small>
-                        🤖 Agents: ${metadata.agents_used.join(', ')} |
-                        ⏱️ ${metadata.execution_time.toFixed(2)}s |
-                        📊 Confidence: ${(metadata.confidence * 100).toFixed(0)}%
+                        🤖 ${metadata.agents_used ? metadata.agents_used.join(', ') : 'Agent'} |
+                        ⏱️ ${metadata.execution_time ? metadata.execution_time.toFixed(2) + 's' : 'N/A'} |
+                        📊 Confidence: ${metadata.confidence ? (metadata.confidence * 100).toFixed(0) + '%' : 'N/A'}
                     </small>
                 </div>`;
             }
@@ -155,7 +547,7 @@
             const typingDiv = document.createElement('div');
             typingDiv.className = 'message assistant-message typing-indicator';
             typingDiv.id = 'typing';
-            typingDiv.innerHTML = '<div class="message-content">Thinking<span class="dots">...</span></div>';
+            typingDiv.innerHTML = '<div class="message-content">Analyzing<span class="dots">...</span></div>';
             messagesDiv.appendChild(typingDiv);
             scrollToBottom();
         }
@@ -175,18 +567,6 @@
             div.textContent = text;
             return div.innerHTML;
         }
-
-        function uploadFile() {
-            alert('File upload coming soon! For now, paste text or describe your task.');
-        }
-
-        // Load capabilities
-        fetch('/api/capabilities')
-            .then(r => r.json())
-            .then(data => {
-                const caps = data.capabilities.map(c => c.name).join(', ');
-                document.getElementById('capability-list').textContent = caps;
-            });
 
         // Enter to send
         document.getElementById('user-input').addEventListener('keypress', (e) => {
